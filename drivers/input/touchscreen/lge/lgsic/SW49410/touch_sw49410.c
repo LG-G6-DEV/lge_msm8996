@@ -612,7 +612,6 @@ int sw49410_ic_info(struct device *dev)
 	int ret = 0;
 	u32 version = 0;
 	u32 revision = 0;
-	u32 pt_revision = 0;
 	u32 bootmode = 0;
 	u32 product[2] = {0};
 
@@ -623,7 +622,6 @@ int sw49410_ic_info(struct device *dev)
 	}
 
 	ret = sw49410_reg_read(dev, info_chip_revision, &revision, sizeof(revision));
-	ret = sw49410_reg_read(dev, pt_info_chip_revision, &pt_revision, sizeof(pt_revision));
 	ret = sw49410_reg_read(dev, tc_product_id1, &product[0], sizeof(product));
 	ret = sw49410_reg_read(dev, spr_boot_st, &bootmode, sizeof(bootmode));
 	ret = sw49410_reg_read(dev, info_lcm, (u8 *)&d->fw.lcm, sizeof(d->fw.lcm));
@@ -634,17 +632,16 @@ int sw49410_ic_info(struct device *dev)
 	d->fw.version[0] = ((version >> 8) & 0xFF);
 	d->fw.version[1] = version & 0xFF;
 	d->fw.revision = ((revision >> 8) & 0x0F);
-	d->fw.pt_revision = pt_revision & 0x0F;
 
 	memcpy(&d->fw.product_id[0], &product[0], sizeof(product));
 
 	TOUCH_I("version : v%d.%02d, chip : %d, protocol : %d\n" \
-			"[Touch] hw_chip_rev : %x, pt_chip_rev : %x, fpc : %d, lcm : %d, lot : %d\n" \
+			"[Touch] hw_chip_rev : %x, fpc : %d, lcm : %d, lot : %d\n" \
 			"[Touch] product id : %s\n" \
 			"[Touch] flash boot : %s, %s, crc : %s\n",
 			d->fw.version[0], d->fw.version[1],
 			(version >> 16) & 0xFF, (version >> 24) & 0xFF,
-			d->fw.revision, d->fw.pt_revision, d->fw.fpc, d->fw.lcm, d->fw.lot,
+			d->fw.revision, d->fw.fpc, d->fw.lcm, d->fw.lot,
 			d->fw.product_id,
 			(bootmode >> 0 & 0x1) ? "BUSY" : "idle",
 			(bootmode >> 1 & 0x1) ? "done" : "booting",
@@ -3136,8 +3133,8 @@ static int sw49410_get_cmd_version(struct device *dev, char *buf)
 			d->fw.version[0], d->fw.version[1]);
 
 	offset += snprintf(buf + offset, PAGE_SIZE - offset,
-		"chip_rev : %x, pt_chip_rev : %x, fpc : %d, lcm : %d, lot : %d\n",
-			d->fw.revision, d->fw.pt_revision, d->fw.fpc, d->fw.lcm, d->fw.lot);
+		"chip_rev : %x, fpc : %d, lcm : %d, lot : %d\n",
+			d->fw.revision, d->fw.fpc, d->fw.lcm, d->fw.lot);
 	offset += snprintf(buf + offset, PAGE_SIZE - offset,
 			"product id : [%s]\n\n", d->fw.product_id);
 

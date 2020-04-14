@@ -39,3 +39,5 @@ obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49408)           += touch_sw49408_prd.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49408)           += touch_sw49408_abt.o
 #obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49408)           += touch_sw49408_asc.o
 #obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49408)           += touch_filter_nos.o
+
+obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49410)           += SW49410/

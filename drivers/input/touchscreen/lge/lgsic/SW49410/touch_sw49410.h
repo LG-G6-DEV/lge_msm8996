@@ -51,7 +51,6 @@
 #define debug_info_addr			(0x23E)
 #define debug_info_header_addr		(0x241)
 #define info_chip_revision		(0x101) // Touch IC HW register
-#define pt_info_chip_revision		(0x331) // Panel pt_info data
 #define info_lcm			(0x32C)
 #define info_lot			(0x32D)
 #define info_fpc			(0x32E)
@@ -319,6 +318,17 @@ enum {
 	ATTN_ABNORMAL_SPI_EN        = (1U << 2),    /* 4 */
 };
 
+/* The enum value used for touch_notify_connect() must be verified by the Power BSP or USB BSP. */
+enum {
+	CONNECT_INVALID = 0,
+	CONNECT_SDP,
+	CONNECT_DCP,
+	CONNECT_CDP,
+	CONNECT_PROPRIETARY,
+	CONNECT_FLOATED,
+	CONNECT_HUB, /* SHOULD NOT change the value */
+};
+
 struct project_param {
 	u8 sensing_type;
 	u8 chip_id;
@@ -374,7 +384,6 @@ struct sw49410_fw_info {
 	u8 image_version[2];
 	u8 image_product_id[8];
 	u8 revision;
-	u8 pt_revision;
 	u32 lcm;
 	u32 lot;
 	u32 fpc;
