@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2019 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -146,6 +146,14 @@ typedef struct {
 #endif
 #ifndef WLAN_AKM_SUITE_FT_FILS_SHA384
 #define WLAN_AKM_SUITE_FT_FILS_SHA384 0x000FAC11
+#endif
+
+#ifndef WLAN_AKM_SUITE_SAE
+#define WLAN_AKM_SUITE_SAE 0x000FAC08
+#endif
+
+#ifndef WLAN_AKM_SUITE_OWE
+#define WLAN_AKM_SUITE_OWE 0x000FAC12
 #endif
 
 /* Vendor id to be used in vendor specific command and events
@@ -1973,7 +1981,35 @@ enum qca_wlan_vendor_config {
 	QCA_WLAN_VENDOR_ATTR_CONFIG_ANT_DIV_DATA_SNR_WEIGHT = 46,
 	/* 32-bit unsigned value to set ack snr weight*/
 	QCA_WLAN_VENDOR_ATTR_CONFIG_ANT_DIV_ACK_SNR_WEIGHT = 47,
-
+	/*
+	 * 8 bit unsigned value that is set on an AP/GO virtual interface to
+	 * disable operations that would cause the AP/GO to leave its operating
+	 * channel.
+	 *
+	 * This will restrict the scans to the AP/GO operating channel and the
+	 * channels of the other band, if DBS is supported.A STA/CLI interface
+	 * brought up after this setting is enabled, will be restricted to
+	 * connecting to devices only on the AP/GO interface's operating channel
+	 * or on the other band in DBS case. P2P supported channel list is
+	 * modified, to only include AP interface's operating-channel and the
+	 * channels of the other band if DBS is supported.
+	 *
+	 * These restrictions are only applicable as long as the AP/GO interface
+	 * is alive. If the AP/GO interface is brought down then this
+	 * setting/restriction is forgotten.
+	 *
+	 * If this variable is set on an AP/GO interface while a multi-channel
+	 * concurrent session is active, it has no effect on the operation of
+	 * the current interfaces, other than restricting the scan to the AP/GO
+	 * operating channel and the other band channels if DBS is supported.
+	 * However, if the STA is brought down and restarted then the new STA
+	 * connection will either be formed on the AP/GO channel or on the
+	 * other band in a DBS case. This is because of the scan being
+	 * restricted on these channels as mentioned above.
+	 *
+	 * 1-Restrict / 0-Don't restrict offchannel operations.
+	 */
+	QCA_WLAN_VENDOR_ATTR_CONFIG_RESTRICT_OFFCHANNEL = 49,
 	/* keep last */
 	QCA_WLAN_VENDOR_ATTR_CONFIG_LAST,
 	QCA_WLAN_VENDOR_ATTR_CONFIG_MAX =
@@ -3053,4 +3089,51 @@ void wlan_hdd_cfg80211_scan_block_cb(struct work_struct *work);
  * Return: 0 for success, non-zero for failure
  */
 int wlan_hdd_disconnect(hdd_adapter_t *pAdapter, u16 reason);
+
+#ifdef FEATURE_WLAN_DISABLE_CHANNEL_SWITCH
+int wlan_hdd_send_avoid_freq_for_dnbs(hdd_context_t *hdd_ctx, uint8_t op_chan);
+#endif
+
+#undef nla_parse
+#undef nla_parse_nested
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+static inline int wlan_cfg80211_nla_parse(struct nlattr **tb,
+					  int maxtype,
+					  const struct nlattr *head,
+					  int len,
+					  const struct nla_policy *policy)
+{
+	return nla_parse(tb, maxtype, head, len, policy);
+}
+
+static inline int
+wlan_cfg80211_nla_parse_nested(struct nlattr *tb[],
+			       int maxtype,
+			       const struct nlattr *nla,
+			       const struct nla_policy *policy)
+{
+	return nla_parse_nested(tb, maxtype, nla, policy);
+}
+#else
+static inline int wlan_cfg80211_nla_parse(struct nlattr **tb,
+					  int maxtype,
+					  const struct nlattr *head,
+					  int len,
+					  const struct nla_policy *policy)
+{
+	return nla_parse(tb, maxtype, head, len, policy, NULL);
+}
+
+static inline int
+wlan_cfg80211_nla_parse_nested(struct nlattr *tb[],
+			       int maxtype,
+			       const struct nlattr *nla,
+			       const struct nla_policy *policy)
+{
+	return nla_parse_nested(tb, maxtype, nla, policy, NULL);
+}
+#endif
+#define nla_parse(...) (obsolete, use wlan_cfg80211_nla_parse)
+#define nla_parse_nested(...) (obsolete, use wlan_cfg80211_nla_parse_nested)
+
 #endif

@@ -14,7 +14,11 @@
 
 #include "lge_mdss_aod.h"
 #include "lge_mdss_fb.h"
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON)
 #include <linux/input/lge_touch_notify.h>
+#else
+#include <linux/input/lge_touch_notify_nos.h>
+#endif
 #include <linux/delay.h>
 
 extern int mdss_dsi_parse_dcs_cmds(struct device_node *np,
@@ -22,7 +26,7 @@ extern int mdss_dsi_parse_dcs_cmds(struct device_node *np,
 
 extern void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 			struct dsi_panel_cmds *pcmds, u32 flags);
-#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON) || defined(CONFIG_LGE_DISPLAY_HPLUS_COMMON)
 extern void dic_lcd_mode_set(struct mdss_dsi_ctrl_pdata *ctrl);
 #endif
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_HT_LCD_TUNE_MODE)
@@ -489,7 +493,7 @@ int oem_mdss_aod_cmd_send(struct msm_fb_data_type *mfd, int cmd)
 #if defined(CONFIG_LGE_DISPLAY_SRE_MODE)
 		lge_set_sre_cmds(ctrl);
 #endif
-#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON) || defined(CONFIG_LGE_DISPLAY_HPLUS_COMMON)
 		dic_lcd_mode_set(ctrl);
 #endif
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_HT_LCD_TUNE_MODE)

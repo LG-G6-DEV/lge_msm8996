@@ -1,4 +1,6 @@
-/* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+
+/*
+ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -102,115 +104,169 @@
 
 &spi_11 {
 	tdmb@0 {
-		compatible = "lge,tdmb"; // [Fixed] Should be "lge,tdmb".
-		reg = <0>;
-		interrupt-parent = <&tlmm>; // [Fixed] tlmm is the parent
-		interrupts = <21 0x0>; // [Modified] Set INT GPIO, first # is gpio #, second flag keep it 0.
+            compatible = "lge,tdmb"; // [Fixed] Should be "lge,tdmb".
+            reg = <0>;
 
-		// [Fixed] Specifies maximum SPI clock frequency of DMB chipset(38.4 MHz). (ref. FC8080 datasheet)
-		spi-max-frequency = <38400000>;
+            /* [Fixed] parents's node name ("tlmm" on sm8996) */
+            interrupt-parent = <&tlmm>;
 
-		/* [Modified] List of phandles, each pointing at a pin configuration node within a pin controller.
-			The list of names to assign states, List entry 0,1,2... define the name for integer state ID 0,1,2...
-			Ex. control cases are INT(tdmb_int), EN(tdmb_ctrl), ANT SW(tdmb_ant) LNA Gain Ctrl(tdmb_lna_ctrl) LNA EN(tdmb_lna_en)*/
-		pinctrl-names = "tdmb_int", "tdmb_ctrl";
-		pinctrl-0 = <&tdmb_int>;
-		pinctrl-1 = <&tdmb_ctrl>;
+            /* [Modified] Set DMB_INT GPIO, first # is gpio #, second flag keep it 0. */
+            interrupts = <21 0>;
 
-		/* [Modified] when using clock buffer,
-			 you should check which clock buffer used for dmb device */
-		clock-names = "tdmb_xo";
-		clocks = <&clock_gcc clk_bb_clk2>;
+            /* [Fixed] Specifies maximum SPI clock frequency of DMB chipset(38.4 MHz). (ref. FC8080 datasheet) */
+            spi-max-frequency = <38400000>;
 
-		/* [Modified] set hw configure here
-			when use pmic clk buffer, change use-xtal to 0
-			and set xtal-freq(DMB Chipset Core clk), interface-freq(SPI interface clk) inter value. */
-		use-xtal = <1>;
-		xtal-freq = <27120>;
-		interface-freq = <27120>;
+            /* [Fixed] The list of names to assign states, List entry 0,1,2... define the name for integer state ID 0,1,2...
+                        - tdmb_pin_active : set to pinctrl-0 list (set to active)
+                        - tdmb_pin_sleep : set to pinctrl-1 list (set to sleep) 	*/
+            pinctrl-names = "tdmb_pin_active", "tdmb_pin_sleep";
 
-		/* [Modified] Set DMB-EN, DMB-INT GPIO
-			tlmm is the parent, second # is gpio #, third flag keep it 0. */
-		tdmb-fc8080,irq-gpio = <&tlmm 21 0x00>;
-		tdmb-fc8080,en-gpio = <&tlmm 39 0x00>;
+            /* [Modified] The pin cofig lists can be for control pin.
+                            - pinctrl-0 : active state
+                            - pinctrl-1 : active sleep(suspend)
+                          The pin config lists shall be defined in the "(model)-pinctrl.dtsi" file
+                          The control pins lists are interrupt(tdmb_int), enable(tdmb_en),
+                          FM/DMB antenna swtiching(tdmb_ant), LNA gain control & enable(tdmb_lna), LDO enable(tdmb_lna_en)
+                          Additional items may vary depending on model schematic. */
+            pinctrl-0 = <&tdmb_int_active>, <&tdmb_en_active>;
+            pinctrl-1 = <&tdmb_int_suspend>, <&tdmb_en_suspend>;
 
-		/* [Modified] when use ant switching, change use-ant-sw to 1,
-	                 and set ant active mode (high(1) or low(0)), ant-gpio. */
-		use-ant-sw = <0>;
-		//ant-active-mode = <0>;
-		//tdmb-fc8080,ant-gpio = <&tlmm 22 0x00>;
+            /* [Modified] first is parents's node, second # is gpio #, third flag keep it 0. */
+            en-gpio = <&tlmm 39 0>;
+            //lna-gc-gpio = <&tlmm ?? 0>;
+            //lna-en-gpio = <&tlmm 164 0>;
+            //ldo-en-gpio = <&tlmm 11 0>;
 
-		// [Modified] when use ldo for LDO_IN, chage ctrl-dmb-ldo to 1, and set dmb_ldo-supply.
-		ctrl-dmb-ldo = <1>;
-		dmb_ldo-supply = <&pm8994_l10>;
+            /* [Modified] when use DMB_EN & LDO_EN same gpio, change below property to 1 */
+            dmb-en-lna-en-same-gpio = <0>;
 
-		// [Modified] when use ldo for LNA(U1800), chage ctrl-lna-ldo to 1, and set lna_ldo-supply.
-		ctrl-lna-ldo = <0>;
-		//lna_ldo-supply = <&pm8916_l16>;
+            /* [ANT Switch Information]
+             *  1) FM/DMB Switch                               : Control
+             *  2) TDMB ANT connected to port1 (High) and FM_ANT connected to port2 (Low), so active mode is high
+             */
 
-		// [Modified] when use LNA, chage use-lna-ctrl to 1, and set lna-ctrl-gpio.
-		use-lna-ctrl = <0>;
-		//tdmb-fc8080,lna-ctrl-gpio = <&tlmm 103 0x00>;
+            /* [Modified] when use ant switching, change use-ant-sw to 1, and set ant active mode (high(1) or low(0)), ant-gpio.
+               ant-sw-apio should be dmb_ant's Gpio number */
+            use-ant-sw = <0>;
+            //ant-sw-gpio = <&tlmm 163 0>;
+            //ant-sw-active-value = <1>;
 
-		// [Modified] when use LNA EN, chage use-lna-en to 1, and set lna-en-gpio.
-		use-lna-en = <0>;
-		//tdmb-fc8080,lna-en-gpio = <&tlmm ?? 0x00>;
+            /* [CLK Information] */
+            /* [Modified] when use pmic clk buffer, change use-xtal to 0 and set xtal-freq(DMB Chipset Core clk), interface-freq(SPI interface clk) inter value in kHz. */
+            use-xtal = <1>;
+            xtal-freq = <27120>;
+            interface-freq = <27120>;
+
+            /* [Modified] when using clock buffer, you should check which clock buffer used for dmb device */
+            clock-names = "tdmb_xo";
+            clocks = <&clock_gcc clk_bb_clk2>;
+
+
+            /* [Power Supply Description Information]
+             *  1) ANT-SW LDO   (pm8150_l16)                 : V2.7, Not always power, power on/off control need
+             *  2) DMB LDO      (pm8150_l12)                    : V1.8, always power, power on/off control not need
+             *  3) LNA LDO      (pm8150_s4)                     : V1.8, always power, power on/off control not need
+             */
+
+            /* [Modified] When use ldo for RFSW, change ctrl-ant-sw-ldo to 1, and ant-sw-supply set the appropriate chipset & power function such as <&pm8953_l10>
+               If no use case, change ctrl-ant-sw-ldo to 0, and ant-sw-supply set such as <&chipset#_l??>*/
+            ctrl-ant-sw-ldo = <0>;
+            //ant-sw-ldo-supply = <&chipset#_l??>;
+
+            /* [Modified] when use ldo for LDO_IN, change ctrl-dmb-ldo to 1, and dmb-ldo-supply set the appropriate chipset & power function such as <&pm8953_l10>
+              If no use case, change ctrl-dmb-ldo to 0, and dmb-ldo-supply set such as <&chipset#_l??>*/
+            ctrl-dmb-ldo = <1>;
+            dmb-ldo-supply = <&pm8994_l10>;
+
+            /* [Modified] when use ldo for LNA(U1800), change ctrl-lna-ldo to 1, and lna-ldo-supply set the appropriate chipset & power function such as <&pm8953_l10>
+               If no use case, change ctrl-lna-ldo to 0, and lna-ldo-supply set such as <&chipset#_l??>*/
+            ctrl-lna-ldo = <0>;
+            //lna-ldo-supply = <&pm8916_l16>;
 	};
 };
 
 &soc {
-	tlmm: pinctrl@01010000 {
-		pmx_spi_tdmb {
-			spi_tdmb_active: spi_tdmb_active {
-				mux {
-					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
-					function = "blsp_spi11";
-				};
+    tlmm: pinctrl@01010000 {
+        pmx_spi_tdmb {
+            spi_tdmb_active: spi_tdmb_active {
+                mux {
+                    pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+                    function = "blsp_spi11";
+                };
 
-				config {
-					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
-					drive-strength = <8>; /* 8MA */
-					bias-disable;
-				};
-			};
+                config {
+                    pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+                    drive-strength = <8>; /* 8mA */
+                    bias-disable;
+                };
+            };
 
-			spi_tdmb_suspend: spi_tdmb_suspend {
-				mux {
-					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
-					function = "gpio";
-				};
+            spi_tdmb_suspend: spi_tdmb_suspend {
+                mux {
+                    pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+                    function = "gpio";
+                };
 
-				config {
-					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
-					drive-strength = <2>; /* 8MA */
-					bias-pull-down;
-				};
-			};
-		};
+                config {
+                    pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+                    drive-strength = <2>; /* 2mA */
+                    bias-pull-down;
+                };
+            };
+        };
 
-		tdmb_int: tdmb_int {
-			mux {
-				pins = "gpio21";
-				function = "gpio";
-			};
-			config {
-				pins = "gpio21";
-				drive-strength = <8>; /* 8MA */
-				bias-pull-up;
-			};
-		};
+        tdmb_int_active: tdmb_int_active {
+            mux {
+                pins = "gpio21";
+                function = "gpio";
+            };
 
-		tdmb_ctrl: tdmb_ctrl {
-			mux {
-				pins = "gpio39";
-				function = "gpio";
-			};
-			config {
-				pins = "gpio39";
-				drive-strength = <8>; /* 8MA */
-				bias-disable;
-			};
-		};
+            config {
+                pins = "gpio21";
+                drive-strength = <2>; /* 2mA */
+                input-enable;
+                bias-pull-up;
+            };
+        };
 
-	};
+        tdmb_int_suspend: tdmb_int_suspend {
+            mux {
+                pins = "gpio21";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio21";
+                drive-strength = <2>;
+                bias-pull-down;
+            };
+        };
+
+        tdmb_en_active: tdmb_en_active {
+            mux {
+                pins = "gpio39";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio39";
+                drive-strength = <4>; /* 4mA */
+                output-low;
+                bias-disable;
+            };
+        };
+
+        tdmb_en_suspend: tdmb_en_suspend {
+            mux {
+                pins = "gpio39";
+                function = "gpio";
+            };
+
+            config {
+                pins = "gpio39";
+                drive-strength = <2>;
+                bias-pull-down;
+            };
+        };
+    };
 };

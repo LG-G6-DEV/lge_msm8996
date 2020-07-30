@@ -883,6 +883,7 @@ retry_rx_alloc:
 		}
 		req->complete = mtp_complete_out;
 		dev->rx_req[i] = req;
+		printk(KERN_INFO "retry rx_req alloc: %d\n", mtp_rx_req_len);
 	}
 
 	for (i = 0; i < INTR_REQ_MAX; i++) {
@@ -956,24 +957,25 @@ retry_tx_alloc:
 	/* now allocate requests for our endpoints */
 	for (i = 0; i < dev->mtp_tx_reqs; i++) {
 		req = mtp_request_new(dev->ep_in,
-				dev->mtp_tx_req_len + extra_buf_alloc);
+				mtp_tx_req_len + extra_buf_alloc);
 		if (!req) {
 #ifndef CONFIG_LGE_USB_G_ANDROID
-			if (dev->mtp_tx_req_len <= MTP_BULK_BUFFER_SIZE)
+			if (mtp_tx_req_len <= MTP_BULK_BUFFER_SIZE)
 				goto fail;
 #endif
 			while ((req = mtp_req_get(dev, &dev->tx_idle)))
 				mtp_request_free(req, dev->ep_in);
 #ifdef CONFIG_LGE_USB_G_ANDROID
-			if (dev->mtp_tx_req_len <= MTP_BULK_BUFFER_SIZE)
+			if (mtp_tx_req_len <= MTP_BULK_BUFFER_SIZE)
 				goto tx_fail;
 #endif
-			dev->mtp_tx_req_len = MTP_BULK_BUFFER_SIZE;
-			dev->mtp_tx_reqs = MTP_TX_REQ_MAX;
+			mtp_tx_req_len = MTP_BULK_BUFFER_SIZE;
+			mtp_tx_reqs = MTP_TX_REQ_MAX;
 			goto retry_tx_alloc;
 		}
 		req->complete = mtp_complete_in;
 		mtp_req_put(dev, &dev->tx_idle, req);
+		printk(KERN_INFO "retry rx_req alloc: %d\n", mtp_tx_req_len);
 	}
 
 	/*
@@ -982,29 +984,29 @@ retry_tx_alloc:
 	 * operational speed.  Hence assuming super speed max
 	 * packet size.
 	 */
-	if (dev->mtp_rx_req_len % 1024)
-		dev->mtp_rx_req_len = MTP_BULK_BUFFER_SIZE;
+	if (mtp_rx_req_len % 1024)
+		mtp_rx_req_len = MTP_BULK_BUFFER_SIZE;
 
 retry_rx_alloc:
 	for (i = 0; i < RX_REQ_MAX; i++) {
-		req = mtp_request_new(dev->ep_out, dev->mtp_rx_req_len);
+		req = mtp_request_new(dev->ep_out, mtp_rx_req_len);
 		if (!req) {
 #ifndef CONFIG_LGE_USB_G_ANDROID
-			if (dev->mtp_rx_req_len <= MTP_BULK_BUFFER_SIZE)
+			if (mtp_rx_req_len <= MTP_BULK_BUFFER_SIZE)
 				goto fail;
 #endif
 			for (--i; i >= 0; i--)
 				mtp_request_free(dev->rx_req[i], dev->ep_out);
 
 #ifdef CONFIG_LGE_USB_G_ANDROID
-			if (dev->mtp_rx_req_len <= MTP_BULK_BUFFER_SIZE)
+			if (mtp_rx_req_len <= MTP_BULK_BUFFER_SIZE)
 				goto rx_fail;
 #endif
 #ifdef CONFIG_LGE_USB_G_ANDROID
-			dev->mtp_rx_req_len /= 2;
-			DBG(cdev, "retry rx_req alloc: %d\n", dev->mtp_rx_req_len);
+			mtp_rx_req_len /= 2;
+			INFO(cdev, "retry rx_req alloc: %d\n", mtp_rx_req_len);
 #else
-			dev->mtp_rx_req_len = MTP_BULK_BUFFER_SIZE;
+			mtp_rx_req_len = MTP_BULK_BUFFER_SIZE;
 #endif
 			goto retry_rx_alloc;
 		}
@@ -1073,7 +1075,7 @@ static ssize_t mtp_read(struct file *fp, char __user *buf,
 	}
 	len = ALIGN(count, dev->ep_out->maxpacket);
 
-	if (len > dev->mtp_rx_req_len)
+	if (len > mtp_rx_req_len)
 		return -EINVAL;
 
 	spin_lock_irq(&dev->lock);
@@ -1197,8 +1199,8 @@ static ssize_t mtp_write(struct file *fp, const char __user *buf,
 			break;
 		}
 
-		if (count > dev->mtp_tx_req_len)
-			xfer = dev->mtp_tx_req_len;
+		if (count > mtp_tx_req_len)
+			xfer = mtp_tx_req_len;
 		else
 			xfer = count;
 		if (xfer && copy_from_user(req->buf, buf, xfer)) {
@@ -1299,8 +1301,8 @@ static void send_file_work(struct work_struct *data)
 			break;
 		}
 
-		if (count > dev->mtp_tx_req_len)
-			xfer = dev->mtp_tx_req_len;
+		if (count > mtp_tx_req_len)
+			xfer = mtp_tx_req_len;
 		else
 			xfer = count;
 
@@ -1398,7 +1400,8 @@ static void receive_file_work(struct work_struct *data)
 			cur_buf = (cur_buf + 1) % RX_REQ_MAX;
 
 			/* some h/w expects size to be aligned to ep's MTU */
-			read_req->length = dev->mtp_rx_req_len;
+			read_req->length = mtp_rx_req_len;
+			printk(KERN_INFO "receive_file_work( lenth : %d)\n", mtp_rx_req_len);
 
 			dev->rx_done = 0;
 			ret = usb_ep_queue(dev->ep_out, read_req, GFP_KERNEL);
@@ -2282,7 +2285,7 @@ static int debug_mtp_read_stats(struct seq_file *s, void *unused)
 		seq_printf(s, "vfs write: bytes:%ld\t\t time:%d\n",
 				dev->perf[i].vfs_wbytes,
 				dev->perf[i].vfs_wtime);
-		if (dev->perf[i].vfs_wbytes == dev->mtp_rx_req_len) {
+		if (dev->perf[i].vfs_wbytes == mtp_rx_req_len) {
 			sum += dev->perf[i].vfs_wtime;
 			if (min > dev->perf[i].vfs_wtime)
 				min = dev->perf[i].vfs_wtime;
@@ -2304,7 +2307,7 @@ static int debug_mtp_read_stats(struct seq_file *s, void *unused)
 		seq_printf(s, "vfs read: bytes:%ld\t\t time:%d\n",
 				dev->perf[i].vfs_rbytes,
 				dev->perf[i].vfs_rtime);
-		if (dev->perf[i].vfs_rbytes == dev->mtp_tx_req_len) {
+		if (dev->perf[i].vfs_rbytes == mtp_tx_req_len) {
 			sum += dev->perf[i].vfs_rtime;
 			if (min > dev->perf[i].vfs_rtime)
 				min = dev->perf[i].vfs_rtime;

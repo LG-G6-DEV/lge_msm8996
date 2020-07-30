@@ -2856,9 +2856,6 @@ int mdss_dsi_panel_timing_switch(struct mdss_dsi_ctrl_pdata *ctrl,
 		pinfo->mipi.dsi_phy_db.timing_8996[i] = pt->phy_timing_8996[i];
 
 	ctrl->on_cmds = pt->on_cmds;
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	ctrl->vcom_cmds = pt->vcom_cmds;
-#endif
 #if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 	ctrl->display_on_cmds = pt -> display_on_cmds;
 #if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
@@ -2872,13 +2869,6 @@ int mdss_dsi_panel_timing_switch(struct mdss_dsi_ctrl_pdata *ctrl,
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	ctrl->v_to_c_on_cmds= pt->v_to_c_on_cmds;
 	ctrl->c_to_v_on_cmds= pt->c_to_v_on_cmds;
-#endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-	ctrl->sharpness_on_cmds = pt->sharpness_on_cmds;
-#endif
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	ctrl->ie_on_cmds = pt->ie_on_cmds;
-	ctrl->ie_off_cmds = pt->ie_off_cmds;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	ctrl->display_on_cmds= pt->display_on_cmds;
@@ -3030,11 +3020,6 @@ static int  mdss_dsi_panel_config_res_properties(struct device_node *np,
 	mdss_dsi_parse_dcs_cmds(np, &pt->on_cmds,
 		"qcom,mdss-dsi-on-command",
 		"qcom,mdss-dsi-on-command-state");
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	mdss_dsi_parse_dcs_cmds(np, &pt->vcom_cmds,
-		"qcom,mdss-dsi-vcom-command",
-		"qcom,mdss-dsi-on-command-state");
-#endif
 #if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 	mdss_dsi_parse_dcs_cmds(np, &pt->display_on_cmds,
 		"qcom,mdss-display-on-command",
@@ -3064,19 +3049,6 @@ static int  mdss_dsi_panel_config_res_properties(struct device_node *np,
 	mdss_dsi_parse_dcs_cmds(np, &pt->c_to_v_on_cmds,
 		"qcom,c-to-v-on-command",
 		"qcom,mdss-dsi-on-command-state");
-#endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-	mdss_dsi_parse_dcs_cmds(np, &pt->sharpness_on_cmds,
-		"qcom,mdss-dsi-sharpness-on-command",
-		"qcom,mdss-dsi-common-hs-command-state");
-#endif
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	mdss_dsi_parse_dcs_cmds(np, &pt->ie_on_cmds,
-		"qcom,mdss-dsi-ie-on-command",
-		"qcom,mdss-dsi-common-hs-command-state");
-	mdss_dsi_parse_dcs_cmds(np, &pt->ie_off_cmds,
-		"qcom,mdss-dsi-ie-off-command",
-		"qcom,mdss-dsi-common-hs-command-state");
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	mdss_dsi_parse_dcs_cmds(np, &pt->display_on_cmds,
@@ -3587,9 +3559,6 @@ int mdss_dsi_panel_init(struct device_node *node,
 	if (rc) {
 		pr_err("%s: fail to init lge panel features\n", __func__);
 	}
-#endif
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	ctrl_pdata->ie_on = 1;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_AOD_SUPPORTED)
 	if ((rc = oem_mdss_aod_init(node, ctrl_pdata)))

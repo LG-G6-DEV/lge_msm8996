@@ -18,3 +18,4 @@ obj-$(CONFIG_LGE_QFPROM_INTERFACE) += lge_qfprom_access.o
 obj-$(CONFIG_PRE_SELF_DIAGNOSIS) += lge_pre_selfd.o
 obj-$(CONFIG_LGE_PM_SUPPORT_LG_POWER_CLASS) += power/
 obj-$(CONFIG_LGE_PKM) += lge_pkm_drv.o
+obj-$(CONFIG_LGE_PAY_MME) += lge_mme_drv.o

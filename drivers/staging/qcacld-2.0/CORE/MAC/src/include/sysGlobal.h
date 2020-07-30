@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2018 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -51,7 +51,7 @@ typedef struct sAniSirSys
     tANI_U32 gSysEnableLearnMode;
     tANI_U32 gSysEnableScanMode;
     tANI_U32 gSysEnableLinkMonitorMode;
-    vos_spin_lock_t bbt_mgmt_lock;
+    adf_os_spinlock_t bbt_mgmt_lock;
 } tAniSirSys, *tpAniSirSys;
 
 #endif

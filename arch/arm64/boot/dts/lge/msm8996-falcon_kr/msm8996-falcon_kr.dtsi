@@ -20,6 +20,7 @@
 #include "msm8996-falcon_kr-fingerprint.dtsi"
 #include "msm8996-falcon_kr-usb.dtsi"
 #include "msm8996-falcon_kr-sarcontroller.dtsi"
+#include "msm8996-falcon_kr-mme.dtsi"
 
 / {
 	reserved-memory {

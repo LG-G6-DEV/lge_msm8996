@@ -16,7 +16,7 @@
 #include "../../mdss_dsi.h"
 #include "../lge_mdss_display.h"
 #include "../../mdss_dba_utils.h"
-#include <linux/input/lge_touch_notify.h>
+#include <linux/input/lge_touch_notify_nos.h>
 #include <soc/qcom/lge/board_lge.h>
 
 #if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)

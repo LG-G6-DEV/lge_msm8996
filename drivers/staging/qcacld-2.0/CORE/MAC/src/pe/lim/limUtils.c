@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2019 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -758,6 +758,9 @@ limCleanupMlm(tpAniSirGlobal pMac)
 
         tx_timer_deactivate(&pMac->lim.limTimers.gLimActiveToPassiveChannelTimer);
         tx_timer_delete(&pMac->lim.limTimers.gLimActiveToPassiveChannelTimer);
+
+        tx_timer_deactivate(&pMac->lim.limTimers.sae_auth_timer);
+        tx_timer_delete(&pMac->lim.limTimers.sae_auth_timer);
 
         pMac->lim.gLimTimersCreated = 0;
     }
@@ -5368,7 +5371,12 @@ limIsChannelValidForChannelSwitch(tpAniSirGlobal pMac, tANI_U8 channel)
     tANI_U8  index;
     tANI_U32    validChannelListLen = WNI_CFG_VALID_CHANNEL_LIST_LEN;
     tSirMacChanNum   validChannelList[WNI_CFG_VALID_CHANNEL_LIST_LEN];
-
+#ifdef FEATURE_WLAN_DISABLE_CHANNEL_SWITCH
+    if (!vos_is_chan_ok_for_dnbs(channel)) {
+        PELOGE(limLog(pMac, LOGE, FL("channel is not valid for dnbs"));)
+        return (eSIR_FALSE);
+    }
+#endif
     if (wlan_cfgGetStr(pMac, WNI_CFG_VALID_CHANNEL_LIST,
           (tANI_U8 *)validChannelList,
           (tANI_U32 *)&validChannelListLen) != eSIR_SUCCESS)
@@ -8234,15 +8242,15 @@ bool lim_check_if_vendor_oui_match(tpAniSirGlobal mac_ctx,
         return false;
 }
 
-void lim_decrement_pending_mgmt_count(tpAniSirGlobal pMac)
+void lim_decrement_pending_mgmt_count(tpAniSirGlobal mac_ctx)
 {
-    vos_spin_lock_acquire(&pMac->sys.bbt_mgmt_lock);
-    if (!pMac->sys.sys_bbt_pending_mgmt_count) {
-        vos_spin_lock_release(&pMac->sys.bbt_mgmt_lock);
-        limLog(pMac, LOGW,
-               FL("sys_bbt_pending_mgmt_count value is 0"));
-        return;
-    }
-    pMac->sys.sys_bbt_pending_mgmt_count--;
-    vos_spin_lock_release(&pMac->sys.bbt_mgmt_lock);
+       adf_os_spin_lock(&mac_ctx->sys.bbt_mgmt_lock);
+       if (!mac_ctx->sys.sys_bbt_pending_mgmt_count) {
+               adf_os_spin_unlock(&mac_ctx->sys.bbt_mgmt_lock);
+               limLog(mac_ctx, LOGW,
+                       FL("sys_bbt_pending_mgmt_count value is 0"));
+               return;
+       }
+       mac_ctx->sys.sys_bbt_pending_mgmt_count--;
+       adf_os_spin_unlock(&mac_ctx->sys.bbt_mgmt_lock);
 }

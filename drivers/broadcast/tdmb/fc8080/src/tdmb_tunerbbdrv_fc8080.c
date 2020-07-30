@@ -385,7 +385,7 @@ int tunerbb_drv_fc8080_msc_cb(uint32 userdata, uint8 subChId, uint8 *data, int l
 ---------------------------------------------------------------------------- */
 int tunerbb_drv_fc8080_msc_cb(uint32 userdata, uint8 subChId, uint8 *data, int length)
 {
-    TDMB_BB_HEADER_TYPE dmb_header;
+    TDMB_BB_HEADER_TYPE dmb_header = {0, };
     uint16 head_size = 0;
 
     switch(fc8080_serviceType[0])
@@ -441,15 +441,6 @@ int tunerbb_drv_fc8080_msc_cb(uint32 userdata, uint8 subChId, uint8 *data, int l
 int8    tunerbb_drv_fc8080_init(void)
 {
     uint8 res;
-    /*test*/
-
-    /*
-    uint16 i;
-    uint32 wdata = 0;
-    uint32 ldata = 0;
-    uint32 data = 0;
-    uint32 temp = 0;
-    */
 
     /* Common Code */
 #if defined(STREAM_SLAVE_PARALLEL_UPLOAD)
@@ -463,11 +454,6 @@ int8    tunerbb_drv_fc8080_init(void)
     bbm_com_hostif_select(NULL, BBM_SPI);
 #else
 #error code not present
-#endif
-
-#if !defined(STREAM_TS_UPLOAD)
-    bbm_com_fic_callback_register((UDynamic_32_64)NULL, tunerbb_drv_fc8080_fic_cb);
-    bbm_com_msc_callback_register((UDynamic_32_64)NULL, tunerbb_drv_fc8080_msc_cb);
 #endif
 
     res = bbm_com_probe(NULL);
@@ -1016,8 +1002,11 @@ int8    tunerbb_drv_fc8080_get_ber(struct broadcast_tdmb_sig_info *dmb_bb_info)
 
 #ifdef FEATURE_ISR_REPAIR
     if (isr_status) {
+#if defined(CONFIG_ARCH_QCOM)
         bbm_com_write(0, BBM_MD_INT_EN, BBM_MF_INT);
-        //print_log(0, "======= FC8080 FEATURE_ISR_REPAIR=======\n");
+#else
+        bbm_com_write(0, BBM_MD_INT_STATUS, BBM_MF_INT);
+#endif
     }
 #endif
 {
@@ -1535,9 +1524,9 @@ int8    tunerbb_drv_fc8080_get_multi_data(uint8 subch_cnt, uint8* buf_ptr, uint3
 {
     uint32 nDataSize;
     int i=0;
-    TDMB_BB_HEADER_TYPE dmb_header;
+    TDMB_BB_HEADER_TYPE dmb_header = {0, };
     uint32 read_size = 0;
-    FCI_HEADER_TYPE header;
+    FCI_HEADER_TYPE header = {0, };
     uint8 ch_cnt=0;
 
     if(buf_ptr == NULL || buf_size == 0)
@@ -1663,7 +1652,7 @@ void tunerbb_drv_fc8080_get_dm(fci_u32 *mscber, fci_u32 *tp_err, fci_u16 *tpcnt,
         fci_u32 ber_err_bits;
     };
 
-    struct dm_st dm;
+    struct dm_st dm = {0, };
 
     bbm_com_bulk_read(NULL, BBM_DM, (fci_u8*) &dm, sizeof(dm));
 
@@ -1905,10 +1894,19 @@ void tunerbb_drv_fc8080_isr_control(fci_u8 onoff)
 {
 #ifdef FEATURE_ISR_REPAIR
     isr_status = onoff;
-    if(onoff)
+    if(onoff) {
+#if defined(CONFIG_ARCH_QCOM)
         bbm_com_write(0, BBM_MD_INT_EN, BBM_MF_INT);
-    else
+#else
+        bbm_com_write(0, BBM_MD_INT_STATUS, BBM_MF_INT);
+#endif
+    } else {
+#if defined(CONFIG_ARCH_QCOM)
         bbm_com_write(0, BBM_MD_INT_EN, 0);
+#else
+        bbm_com_write(0, BBM_MD_INT_STATUS, 0);
+#endif
+    }
 #endif
 }
 

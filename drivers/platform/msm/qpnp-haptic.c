@@ -1932,6 +1932,10 @@ static int qpnp_hap_set(struct qpnp_hap *hap, int on)
 /* enable interface from timed output class */
 static void qpnp_hap_td_enable(struct timed_output_dev *dev, int value)
 {
+#ifdef CONFIG_LGE_QPNP_SD_HAPTIC
+	u8 val = 0x00;
+	int rc;
+#endif
 	struct qpnp_hap *hap = container_of(dev, struct qpnp_hap,
 					 timed_dev);
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
@@ -1971,7 +1975,23 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int value)
 			      HRTIMER_MODE_REL);
 	}
 	mutex_unlock(&hap->lock);
+#ifdef CONFIG_LGE_QPNP_SD_HAPTIC //copy from qpnp_hap_worker for schedule_work delay
+/* Disable haptics module if the duration of short circuit
+ * exceeds the maximum limit (5 secs).
+ */
+	if (hap->sc_duration == SC_MAX_DURATION) {
+		rc = qpnp_hap_write_reg(hap, &val,
+				QPNP_HAP_EN_CTL_REG(hap->base));
+		//dev_info(&hap->spmi->dev, "qpnp_hap_td_enable : hap->sc_duration=%d\n", hap->sc_duration);
+	} else {
+		if (hap->play_mode == QPNP_HAP_PWM)
+			qpnp_hap_mod_enable(hap, hap->state);
+		qpnp_hap_set(hap, hap->state);
+		//dev_info(&hap->spmi->dev, "qpnp_hap_td_enable : hap->state=%d\n", hap->state);
+	}
+#else //qualcomm original code
 	schedule_work(&hap->work);
+#endif /*CONFIG_LGE_QPNP_SD_HAPTIC*/
 }
 
 /* play pwm bytes */

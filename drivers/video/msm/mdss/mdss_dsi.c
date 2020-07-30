@@ -41,7 +41,11 @@
 #include <linux/mfd/dw8768_dsv.h>
 #include <soc/qcom/lge/board_lge.h>
 #include <linux/regulator/driver.h>
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON)
 #include <linux/input/lge_touch_notify.h>
+#else
+#include <linux/input/lge_touch_notify_nos.h>
+#endif
 #include <linux/lge_panel_notify.h>
 int panel_not_connected;
 int skip_lcd_error_check;

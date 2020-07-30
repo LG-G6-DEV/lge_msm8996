@@ -578,6 +578,10 @@ int rtc6213n_fops_open(struct file *file)
 	int i;
 
 	pr_info("%s enter\n", __func__);
+	if (retval){
+		pr_err("%s fail to open v4l2\n", __func__);
+		return retval;
+	}
 
 	INIT_DELAYED_WORK(&radio->work, rtc6213n_handler);
 	INIT_DELAYED_WORK(&radio->work_scan, rtc6213n_scan);
@@ -626,12 +630,19 @@ done:
 int rtc6213n_fops_release(struct file *file)
 {
 	struct rtc6213n_device *radio = video_drvdata(file);
-	int retval = v4l2_fh_release(file);
+	int retval;
 
 	dev_info(&radio->videodev.dev, "rtc6213n_fops_release : Exit\n");
 
 	if (v4l2_fh_is_singular_file(file))
-		rtc6213n_power_down(radio);
+	{
+		if(radio->mode != FM_OFF)
+		{
+			pr_info("func : %s , fail to fm power down. Do power_down again. \n", __func__);
+			rtc6213n_power_down(radio);
+			radio->mode = FM_OFF;
+		}
+	}
 
 #if 1 //LGE
 	/* If pinctrl is supported, select suspend state */
@@ -643,12 +654,9 @@ int rtc6213n_fops_release(struct file *file)
 	}
 	fm_ant_gpios(radio, false);
 #endif
-	if(retval < 0){
-		pr_err("%s fail to power_down\n", __func__);
-		return retval;
-	}
 
-	return retval;
+	rtc6213n_disable_irq(radio);
+	return v4l2_fh_release(file);
 }
 
 static int rtc6213n_parse_dt(struct device *dev,

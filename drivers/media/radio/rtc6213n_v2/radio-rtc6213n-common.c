@@ -1423,7 +1423,7 @@ int rtc6213n_power_down(struct rtc6213n_device *radio)
 		/* stop radio */
 	retval = rtc6213n_stop(radio);
 
-	rtc6213n_disable_irq(radio);
+	//rtc6213n_disable_irq(radio); /* move it to fops_release for prevent calling twice */
 	mutex_unlock(&radio->lock);
 	pr_info("%s exit %d\n", __func__, retval);
 

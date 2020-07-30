@@ -322,8 +322,8 @@ void lge_set_image_quality_cmds(struct mdss_dsi_ctrl_pdata *ctrl)
 	mask = (SH_MASK | SAT_MASK | HUE_MASK | DG_MASK);
 	mie_pcmds->cmds[0].payload[1] &= (~mask);  //F0h
 
-	if(ctrl->lge_extra.sharpness_control == true)
-		mie_pcmds->cmds[0].payload[1] |= SH_MASK;
+	//sharpness always on
+	mie_pcmds->cmds[0].payload[1] |= SH_MASK;
 
 	if(ctrl->lge_extra.dg_control == DG_ON)
 		mie_pcmds->cmds[0].payload[1] |= DG_MASK;

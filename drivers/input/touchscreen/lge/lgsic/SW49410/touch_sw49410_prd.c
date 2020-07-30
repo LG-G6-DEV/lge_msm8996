@@ -1475,9 +1475,6 @@ static void ic_run_info_print(struct device *dev)
 			"chip_rev : %x\n",
 			d->fw.revision);
 	ret += snprintf(buffer + ret, LOG_BUF_SIZE - ret,
-			"pt_chip_rev : %x\n",
-			d->fw.pt_revision);
-	ret += snprintf(buffer + ret, LOG_BUF_SIZE - ret,
 			"date : 0x%X 0x%X\n",
 			rdata[0], rdata[1]);
 	ret += snprintf(buffer + ret, LOG_BUF_SIZE - ret,
@@ -1491,11 +1488,10 @@ static void ic_run_info_print(struct device *dev)
 	write_file(dev, buffer, TIME_INFO_SKIP);
 }
 
-static int firmware_version_log(struct device *dev)
+static void firmware_version_log(struct device *dev)
 {
 	struct sw49410_data *d = to_sw49410_data(dev);
 	int ret = 0;
-	int pt_ret = 0;
 	unsigned char buffer[LOG_BUF_SIZE] = {0,};
 	int boot_mode = TOUCH_NORMAL_BOOT;
 
@@ -1522,14 +1518,6 @@ static int firmware_version_log(struct device *dev)
 			"product id : %s\n", d->fw.product_id);
 
 	write_file(dev, buffer, TIME_INFO_SKIP);
-
-	// check pt info (falcon chip rev = 1)
-	if(!(0 < d->fw.pt_revision && d->fw.pt_revision < 11)) {
-		TOUCH_E("do not write pt-info. (panel chip rev = %x / pass chip rev = %x\n", d->fw.pt_revision, 1);
-		pt_ret = 1;
-	}
-	
-	return pt_ret;
 }
 
 static ssize_t show_sd(struct device *dev, char *buf)
@@ -1540,7 +1528,6 @@ static ssize_t show_sd(struct device *dev, char *buf)
 	struct siw_hal_prd_data *prd = (struct siw_hal_prd_data *)d->prd;
 	struct prd_test_param *param = &prd->prd_param;
 	int pt_command;
-	int pt_info_ret = 0;
 	int openshort_ret = 0;
 	int u3_m2_raw_ret = 0;
 	int u3_m2_jitter_ret = 0;
@@ -1560,11 +1547,8 @@ static ssize_t show_sd(struct device *dev, char *buf)
 		return ret;
 	}
 
-	/*
-		PT_INFO_TEST
-		pass : 0, fail : 1
-	*/
-	pt_info_ret = firmware_version_log(dev);
+        firmware_version_log(dev);
+
 	ic_run_info_print(dev);
 
 	mutex_lock(&ts->lock);
@@ -1609,13 +1593,13 @@ static ssize_t show_sd(struct device *dev, char *buf)
 
 	ret = snprintf(buf, PAGE_SIZE,
 			"\n========RESULT=======\n");
-	if ((pt_info_ret + u3_m2_raw_ret+u3_m2_delta_ret) == 0) {
+	if ((u3_m2_raw_ret+u3_m2_delta_ret) == 0) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 				"Raw Data : Pass\n");
 	} else {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
-				"Raw Data : Fail (pt_info:%d / m2_raw:%d / m2_delta:%d)\n",
-				pt_info_ret, u3_m2_raw_ret, u3_m2_delta_ret);
+				"Raw Data : Fail ( m2_raw:%d / m2_delta:%d)\n",
+				u3_m2_raw_ret, u3_m2_delta_ret);
 	}
 
 	if (openshort_ret == 0) {
@@ -2155,7 +2139,6 @@ static ssize_t show_lpwg_sd(struct device *dev, char *buf)
 	struct siw_hal_prd_data *prd = (struct siw_hal_prd_data *)d->prd;
 	struct prd_test_param *param = &prd->prd_param;
 	//int pt_command;
-	int pt_info_ret = 0;
 	int u0_m1_raw_ret = 0;
 	int u0_m1_jitter_ret = 0;
 	int u0_m2_raw_ret = 0;
@@ -2184,11 +2167,8 @@ static ssize_t show_lpwg_sd(struct device *dev, char *buf)
 		return ret;
 	}
 
-	/*
-		PT_INFO_TEST
-		pass : 0, fail : 1
-	*/
-	pt_info_ret = firmware_version_log(dev);
+        firmware_version_log(dev);
+
 	ic_run_info_print(dev);
 
 	mutex_lock(&ts->lock);
@@ -2238,13 +2218,13 @@ static ssize_t show_lpwg_sd(struct device *dev, char *buf)
 
 	ret = snprintf(buf + ret, PAGE_SIZE, "========RESULT=======\n");
 
-	if (!pt_info_ret && !u0_m1_raw_ret && !u0_m1_jitter_ret && !u0_m2_raw_ret && !u0_m2_delta_ret) {
+	if (!u0_m1_raw_ret && !u0_m1_jitter_ret && !u0_m2_raw_ret && !u0_m2_delta_ret) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 			"LPWG RawData : Pass\n");
 	} else {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
-			"LPWG RawData : Fail (pt_info:%d / m1_raw:%d / m1_jitter:%d / m2_raw:%d / m2_delta:%d)\n",
-			pt_info_ret, u0_m1_raw_ret, u0_m1_jitter_ret, u0_m2_raw_ret, u0_m2_delta_ret);
+			"LPWG RawData : Fail (m1_raw:%d / m1_jitter:%d / m2_raw:%d / m2_delta:%d)\n",
+			u0_m1_raw_ret, u0_m1_jitter_ret, u0_m2_raw_ret, u0_m2_delta_ret);
 	}
 
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
