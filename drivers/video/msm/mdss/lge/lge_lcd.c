@@ -83,11 +83,34 @@ static ssize_t screen_tune_set(struct device *dev,
 }
 static DEVICE_ATTR(screen_tune, S_IRUGO|S_IWUSR|S_IWGRP, screen_tune_get, screen_tune_set);
 
+static ssize_t white_mode_get(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	GET_DATA
+
+	return sprintf(buf, "%d\n", ctrl->lge_extra.white_mode);
+}
+
+static ssize_t white_mode_set(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t size)
+{
+	ssize_t ret = strnlen(buf, PAGE_SIZE);
+	int mode;
+	GET_DATA
+
+	sscanf(buf, "%d", &mode);
+	ctrl->lge_extra.white_mode     = abs(mode);
+
+	LGE_DDIC_OP_LOCKED(ctrl, white_mode_set, &mfd->mdss_sysfs_lock, mode);
+	return ret;
+}
+static DEVICE_ATTR(white_mode, S_IRUGO|S_IWUSR|S_IWGRP, white_mode_get, white_mode_set);
 
 static struct attribute *lge_mdss_imgtune_advancedIE_attrs[] = {
 	&dev_attr_screen_mode.attr,
 	&dev_attr_rgb_tune.attr,
 	&dev_attr_screen_tune.attr,
+	&dev_attr_white_mode.attr,
 	NULL,
 };
 

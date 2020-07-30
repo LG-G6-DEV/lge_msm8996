@@ -766,7 +766,7 @@ static int lg4945_clock(struct device *dev, bool onoff)
 int lg4945_tc_driving(struct device *dev, int mode)
 {
 	u32 ctrl = 0;
-	u8 rdata;
+	u32 rdata = 0;
 
 	switch (mode) {
 	case LCD_MODE_U0:
@@ -802,7 +802,7 @@ int lg4945_tc_driving(struct device *dev, int mode)
 	lg4945_swipe_mode(dev, mode);
 
 	TOUCH_I("lg4945_tc_driving = %d\n", mode);
-	lg4945_reg_read(dev, 0xD015, (u8 *)&rdata, sizeof(u32));
+	lg4945_reg_read(dev, 0xD015, (u8 *)&rdata, sizeof(rdata));
 	TOUCH_I("IC Mode = %d\n", rdata >> 5 & 0x03);
 	lg4945_reg_write(dev, tc_drive_ctl, &ctrl, sizeof(ctrl));
 	touch_msleep(20);

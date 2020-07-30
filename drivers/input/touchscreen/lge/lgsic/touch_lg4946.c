@@ -923,7 +923,7 @@ int lg4946_tc_driving(struct device *dev, int mode)
 	struct touch_core_data *ts = to_touch_core(dev);
 	struct lg4946_data *d = to_lg4946_data(dev);
 	u32 ctrl = 0;
-	u8 rdata;
+	u32 rdata = 0;
 
 	cancel_delayed_work(&d->reset_work);
 
@@ -964,7 +964,7 @@ int lg4946_tc_driving(struct device *dev, int mode)
 	lg4946_swipe_mode(dev, mode);
 
 	TOUCH_I("lg4946_tc_driving = %d, %x\n", mode, ctrl);
-	lg4946_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(u32));
+	lg4946_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(rdata));
 	TOUCH_I("DDI Display Mode = %d\n", rdata);
 	lg4946_reg_write(dev, tc_drive_ctl, &ctrl, sizeof(ctrl));
 	touch_msleep(20);

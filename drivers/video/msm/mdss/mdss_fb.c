@@ -2369,7 +2369,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	int ret = 0;
 	int cur_power_state, req_power_state = MDSS_PANEL_POWER_OFF;
 	char trace_buffer[32];
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
+#if defined(CONFIG_LGE_DISPLAY_USE_FSC)
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 #endif
 
@@ -2382,10 +2382,9 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	pr_info("[Display] %pS mode:%d\n", __builtin_return_address(0),
 		blank_mode);
 
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
+#if defined(CONFIG_LGE_DISPLAY_USE_FSC)
 	ctrl_pdata = container_of(dev_get_platdata(&mfd->pdev->dev),
 		struct mdss_dsi_ctrl_pdata, panel_data);
-	ctrl_pdata->lge_extra.blank_mode = blank_mode;
 #endif
 
 	snprintf(trace_buffer, sizeof(trace_buffer), "fb%d blank %d",

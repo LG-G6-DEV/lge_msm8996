@@ -19,6 +19,7 @@
 #include <net/dst.h>
 #include <net/xfrm.h>
 
+#include <net/patchcodeid.h>
 static int xfrm_output2(struct sk_buff *skb);
 
 static int xfrm_skb_check_space(struct sk_buff *skb)
@@ -132,7 +133,9 @@ int xfrm_output_resume(struct sk_buff *skb, int err)
 		if (!skb_dst(skb)->xfrm)
 			return dst_output(skb);
 
+/* 2018-03-16 gihong.jang@lge.com LGP_DATA_KERNEL_XFRM_FRAG_ESP [START]*/
 #ifdef CONFIG_XFRM_FRAG_ESP_BEFORE_TUNNEL_ENC
+		patch_code_id("LPCP-2381@n@c@vmlinux@xfrm_output.c@1");
         if (skb->protocol == htons(ETH_P_IPV6) ||
                 (skb->protocol == htons(ETH_P_IP) && skb->sk != NULL && skb->sk->sk_protocol != IPPROTO_TCP)) {
             struct sock *sk = skb->sk;
@@ -143,6 +146,7 @@ int xfrm_output_resume(struct sk_buff *skb, int err)
             }
         }
 #endif
+/* 2018-03-16 gihong.jang@lge.com LGP_DATA_KERNEL_XFRM_FRAG_ESP [END]*/
 
 		err = nf_hook(skb_dst(skb)->ops->family,
 			      NF_INET_POST_ROUTING, skb,

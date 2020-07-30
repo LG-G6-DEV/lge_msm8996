@@ -10,9 +10,13 @@ WLAN_CHIPSET := qca_cld
 WLAN_SELECT := CONFIG_QCA_CLD_WLAN=m
 endif
 
-# Build/Package options for 8953_som target
-ifeq ($(call is-board-platform-in-list, msm8953),true)
+# Build/Package options for 8953_som/8909_som target
+ifeq ($(call is-board-platform-in-list, msm8953 msm8909),true)
 ifeq ($(SD624_SOM_SUPPORT), true)
+WLAN_CHIPSET := qca_cld
+WLAN_SELECT := CONFIG_QCA_CLD_WLAN=m
+endif
+ifeq ($(SD212_SOM_SUPPORT), true)
 WLAN_CHIPSET := qca_cld
 WLAN_SELECT := CONFIG_QCA_CLD_WLAN=m
 endif
@@ -67,13 +71,11 @@ else
 endif
 
 # Copy WCNSS_cfg.dat and WCNSS_qcom_cfg.ini file from firmware_bin/ folder to target out directory.
-#msm8996
-ifeq ($(call is-board-platform-in-list, msm8960 msm8996),true)
-$(shell rm -f $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld/WCNSS_cfg.dat)
-$(shell rm -f $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld/WCNSS_qcom_cfg.ini)
-$(shell cp $(LOCAL_PATH)/firmware_bin/WCNSS_cfg.dat $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld)
-$(shell cp $(LOCAL_PATH)/firmware_bin/WCNSS_qcom_cfg.ini $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld)
-
+ifeq ($(call is-board-platform-in-list, msm8960),true)
+$(shell rm -f $(TARGET_OUT_ETC)/firmware/wlan/qca_cld/WCNSS_cfg.dat)
+$(shell rm -f $(TARGET_OUT_ETC)/firmware/wlan/qca_cld/WCNSS_qcom_cfg.ini)
+$(shell cp $(LOCAL_PATH)/firmware_bin/WCNSS_cfg.dat $(TARGET_OUT_ETC)/firmware/wlan/qca_cld)
+$(shell cp $(LOCAL_PATH)/firmware_bin/WCNSS_qcom_cfg.ini $(TARGET_OUT_ETC)/firmware/wlan/qca_cld)
 endif
 
 ###########################################################
@@ -117,12 +119,7 @@ $(shell mkdir -p $(TARGET_OUT)/lib/modules; \
            $(TARGET_OUT)/lib/modules/wlan.ko)
 endif # PRODUCT_VENDOR_MOVE_ENABLED
 endif
-ifeq ($(call is-board-platform-in-list, msm8996),true)
-$(shell ln -sf /data/misc/wifi/wlan_mac.bin $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld/wlan_mac.bin)
-$(shell ln -sf /firmware/image/bdwlan30.bin $(TARGET_OUT_VENDOR)/firmware/wlan/qca_cld/bdwlan30.bin)
-else
 $(shell ln -sf /persist/wlan_mac.bin $(TARGET_OUT_ETC)/firmware/wlan/qca_cld/wlan_mac.bin)
-endif
 
 ifeq ($(call is-board-platform-in-list, msm8960),true)
 $(shell ln -sf /firmware/image/bdwlan20.bin $(TARGET_OUT_ETC)/firmware/fakeboar.bin)

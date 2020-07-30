@@ -1834,6 +1834,10 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					flags);
 				return 0;
 			} else {
+#ifdef CONFIG_MACH_LGE
+				if (data->payload_size <
+					2 * sizeof(uint32_t))
+#endif
 				pr_err("%s: payload size of %x is less than expected.\n",
 					__func__, data->payload_size);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2018 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -47,15 +47,15 @@ typedef adf_nbuf_t wmi_buf_t;
 #define WMI_EVENT_DEBUG_MAX_ENTRY (1024)
 
 struct wmi_command_debug{
-    u_int32_t command;
-    u_int32_t data[4]; /*16 bytes of WMI cmd excluding TLV and WMI headers*/
-    u_int64_t time;
+	u_int32_t command;
+	u_int32_t data[4]; /*16 bytes of WMI cmd excluding TLV and WMI headers*/
+	u_int64_t time;
 };
 
 struct wmi_event_debug{
-    u_int32_t event;
-    u_int32_t data[4]; /*16 bytes of WMI event data excluding TLV header*/
-    u_int64_t time;
+	u_int32_t event;
+	u_int32_t data[4]; /*16 bytes of WMI event data excluding TLV header*/
+	u_int64_t time;
 };
 
 #endif /*WMI_INTERFACE_EVENT_LOGGING*/
@@ -70,46 +70,46 @@ struct fwdebug {
 #endif /* WLAN_OPEN_SOURCE */
 
 struct wmi_unified {
-    ol_scn_t scn_handle; /* handle to device */
-    adf_os_atomic_t pending_cmds;
-    HTC_ENDPOINT_ID wmi_endpoint_id;
-    uint16_t max_msg_len;
-    WMI_EVT_ID event_id[WMI_UNIFIED_MAX_EVENT];
-    wmi_unified_event_handler event_handler[WMI_UNIFIED_MAX_EVENT];
-    u_int32_t max_event_idx;
-    void *htc_handle;
-    adf_os_spinlock_t eventq_lock;
-    adf_nbuf_queue_t event_queue;
-    struct work_struct rx_event_work;
+	ol_scn_t scn_handle; /* handle to device */
+	adf_os_atomic_t pending_cmds;
+	HTC_ENDPOINT_ID wmi_endpoint_id;
+	uint16_t max_msg_len;
+	WMI_EVT_ID event_id[WMI_UNIFIED_MAX_EVENT];
+	wmi_unified_event_handler event_handler[WMI_UNIFIED_MAX_EVENT];
+	u_int32_t max_event_idx;
+	void *htc_handle;
+	adf_os_spinlock_t eventq_lock;
+	adf_nbuf_queue_t event_queue;
+	struct work_struct rx_event_work;
 #ifdef WLAN_OPEN_SOURCE
        struct fwdebug dbglog;
        struct dentry *debugfs_phy;
 #endif /* WLAN_OPEN_SOURCE */
 
 #ifdef WMI_INTERFACE_EVENT_LOGGING
-    adf_os_spinlock_t wmi_record_lock;
+	adf_os_spinlock_t wmi_record_lock;
 #endif /*WMI_INTERFACE_EVENT_LOGGING*/
 
-    adf_os_atomic_t  is_target_suspended;
+	adf_os_atomic_t  is_target_suspended;
 #ifdef FEATURE_RUNTIME_PM
-    adf_os_atomic_t runtime_pm_inprogress;
+	adf_os_atomic_t runtime_pm_inprogress;
 #endif
-    bool tgt_force_assert_enable;
-    A_BOOL tag_crash_inject;
-    void (*wma_wow_tx_complete_cbk)(ol_scn_t scn_handle);
+	bool tgt_force_assert_enable;
+	A_BOOL tag_crash_inject;
+	void (*wma_wow_tx_complete_cbk)(ol_scn_t scn_handle);
 };
 
 #define ANT_DIV_SET_PERIOD(probe_period, stay_period) \
-    ((1<<26)|((probe_period&0x1fff)<<13)|(stay_period&0x1fff))
+	((1<<26)|((probe_period&0x1fff)<<13)|(stay_period&0x1fff))
 
 #define ANT_DIV_SET_SNR_DIFF(snr_diff) \
-    ((1<<27)|(snr_diff&0x1fff))
+	((1<<27)|(snr_diff&0x1fff))
 
 #define ANT_DIV_SET_PROBE_DWELL_TIME(probe_dwell_time) \
-    ((1<<28)|(probe_dwell_time&0x1fff))
+	((1<<28)|(probe_dwell_time&0x1fff))
 
 #define ANT_DIV_SET_WEIGHT(mgmt_snr_weight, data_snr_weight, ack_snr_weight) \
-    ((1<<29)|((mgmt_snr_weight&0xff)<<16)|((data_snr_weight&0xff)<<8)| \
-    (ack_snr_weight&0xff))
+	((1<<29)|((mgmt_snr_weight&0xff)<<16)|((data_snr_weight&0xff)<<8)| \
+	(ack_snr_weight&0xff))
 
 #endif

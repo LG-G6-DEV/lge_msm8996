@@ -159,6 +159,11 @@ endif
 
 ifeq ($(PRODUCT_SUPPORT_EXFAT), y)
 sinclude $(ANDROID_BUILD_TOP)/device/lge/common/tuxera.mk
+ifeq ($(PLATFORM_VERSION_ORIGINAL), 8.1.0)
+TUXERA_MODULES_OUT := $(TARGET_OUT_VENDOR)/lib/modules
+else
+TUXERA_MODULES_OUT := $(TARGET_OUT)/lib/modules
+endif
 endif
 
 $(TARGET_PREBUILT_INT_KERNEL): $(KERNEL_HEADERS_INSTALL) $(LZ4DEMO) | $(KERNEL_OUT)
@@ -168,17 +173,14 @@ $(TARGET_PREBUILT_INT_KERNEL): $(KERNEL_HEADERS_INSTALL) $(LZ4DEMO) | $(KERNEL_O
 	$(MAKE) -C $(TARGET_KERNEL_SOURCE) O=$(BUILD_ROOT_LOC)$(KERNEL_OUT) ARCH=$(KERNEL_ARCH) CROSS_COMPILE=$(KERNEL_CROSS_COMPILE) KERNEL_COMPRESSION_SUFFIX=$(TARGET_KERNEL_COMPRESSION_SUFFIX) $(KERNEL_CFLAGS) modules
 	$(MAKE) -C $(TARGET_KERNEL_SOURCE) O=$(BUILD_ROOT_LOC)$(KERNEL_OUT) INSTALL_MOD_PATH=$(BUILD_ROOT_LOC)../$(KERNEL_MODULES_INSTALL) INSTALL_MOD_STRIP=1 ARCH=$(KERNEL_ARCH) CROSS_COMPILE=$(KERNEL_CROSS_COMPILE) KERNEL_COMPRESSION_SUFFIX=$(TARGET_KERNEL_COMPRESSION_SUFFIX) modules_install
 ifeq ($(PRODUCT_SUPPORT_EXFAT), y)
-	@mkdir -p $(ANDROID_BUILD_TOP)/$(KERNEL_MODULES_OUT)
-	# @mkdir -p $(ANDROID_BUILD_TOP)/$(PRODUCT_OUT)/vendor/lib/modules
+	@mkdir -p $(ANDROID_BUILD_TOP)/$(TUXERA_MODULES_OUT)
 	@cp -f $(ANDROID_BUILD_TOP)/kernel/msm-3.18/tuxera_update.sh $(ANDROID_BUILD_TOP)
 	@sh tuxera_update.sh --target target/lg.d/mobile-msm8996 --use-cache --latest --max-cache-entries 2 --source-dir $(ANDROID_BUILD_TOP)/kernel/msm-3.18 --output-dir $(ANDROID_BUILD_TOP)/$(KERNEL_OUT) $(SUPPORT_EXFAT_TUXERA)
 	@tar -xzf tuxera-exfat*.tgz
 	@mkdir -p $(TARGET_OUT_EXECUTABLES)
-	@cp $(ANDROID_BUILD_TOP)/tuxera-exfat*/exfat/kernel-module/texfat.ko $(ANDROID_BUILD_TOP)/$(TARGET_OUT_EXECUTABLES)/../lib/modules/
-	# @cp $(ANDROID_BUILD_TOP)/tuxera-exfat*/exfat/kernel-module/texfat.ko $(ANDROID_BUILD_TOP)/$(PRODUCT_OUT)/vendor/lib/modules
+	@cp $(ANDROID_BUILD_TOP)/tuxera-exfat*/exfat/kernel-module/texfat.ko $(ANDROID_BUILD_TOP)/$(TUXERA_MODULES_OUT)
 	@cp $(ANDROID_BUILD_TOP)/tuxera-exfat*/exfat/tools/* $(TARGET_OUT_EXECUTABLES)
-	perl $(ANDROID_BUILD_TOP)/kernel/msm-3.18/scripts/sign-file sha1 $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.priv $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.x509 $(ANDROID_BUILD_TOP)/$(KERNEL_MODULES_OUT)/texfat.ko
-	# perl $(ANDROID_BUILD_TOP)/kernel/msm-3.18/scripts/sign-file sha1 $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.priv $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.x509 $(ANDROID_BUILD_TOP)/$(PRODUCT_OUT)/vendor/lib/modules/texfat.ko
+	perl $(ANDROID_BUILD_TOP)/kernel/msm-3.18/scripts/sign-file sha1 $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.priv $(ANDROID_BUILD_TOP)/$(KERNEL_OUT)/signing_key.x509 $(ANDROID_BUILD_TOP)/$(TUXERA_MODULES_OUT)/texfat.ko
 	@rm -f kheaders*.tar.bz2
 	@rm -f tuxera-exfat*.tgz
 	@rm -rf tuxera-exfat*

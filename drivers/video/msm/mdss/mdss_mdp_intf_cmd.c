@@ -23,7 +23,11 @@
 #include "mdss_dsi_clk.h"
 #include <linux/interrupt.h>
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON)
 #include <linux/input/lge_touch_notify.h>
+#else
+#include <linux/input/lge_touch_notify_nos.h>
+#endif
 #include <soc/qcom/lge/board_lge.h>
 #endif
 

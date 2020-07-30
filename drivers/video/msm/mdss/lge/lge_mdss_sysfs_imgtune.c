@@ -20,11 +20,7 @@ static ssize_t sharpness_get(struct device *dev,
 	ssize_t ret = strnlen(buf, PAGE_SIZE);
 	GET_DATA
 
-#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON) ||  IS_ENABLED(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	ret = sprintf(buf, "%d\n", ctrl->lge_extra.sharpness);
-#else
-	ret = sprintf(buf, "%x\n", ctrl->sharpness_on_cmds.cmds[2].payload[3]);
-#endif
 	return ret;
 }
 
@@ -40,17 +36,13 @@ static ssize_t sharpness_set(struct device *dev,
 		return -EINVAL;
 	}
 
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
+
 	sscanf(buf, "%d", &mode);
-#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON) ||  IS_ENABLED(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	LGE_DDIC_OP_LOCKED(ctrl, sharpness_set, &mfd->mdss_sysfs_lock, mode);
-#else
-	ctrl->sharpness_on_cmds.cmds[2].payload[3] = mode;
-
-	mdss_dsi_panel_cmds_send(ctrl, &ctrl->sharpness_on_cmds, CMD_REQ_COMMIT);
-
-	pr_info("%s: sent sharpness enhancement cmd : 0x%02X\n",
-			__func__, ctrl->sharpness_on_cmds.cmds[2].payload[3]);
-#endif
 	return ret;
 }
 static DEVICE_ATTR(sharpness, S_IWUSR|S_IRUGO, sharpness_get, sharpness_set);
@@ -63,11 +55,7 @@ static ssize_t image_enhance_get(struct device *dev,
 	int ret = 0;
 	GET_DATA
 
-#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON) || IS_ENABLED(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	ret = LGE_DDIC_OP(ctrl, image_enhance_get);
-#else
-	ret = ctrl->ie_on;
-#endif
 	return sprintf(buf, "%d\n", ret);
 }
 
@@ -82,27 +70,19 @@ static ssize_t image_enhance_set(struct device *dev,
 		pr_err("%s: Panel off state. Ignore image enhancement cmd\n", __func__);
 		return -EINVAL;
 	}
+
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
 	sscanf(buf, "%d", &mode);
 	pr_info("%s: IE = %d \n", __func__, mode);
 
-	ctrl->ie_on = mode;
-
-#if IS_ENABLED(CONFIG_LGE_DISPLAY_FALCON_COMMON)
+#if defined(CONFIG_LGE_DISPLAY_FALCON_COMMON)
 	LGE_DDIC_OP_LOCKED(ctrl, image_enhance_set, &mfd->mdss_sysfs_lock, mode);
 	LGE_DDIC_OP_LOCKED(ctrl, mplus_change_blmap, &mfd->bl_lock);
-#elif IS_ENABLED(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+#elif defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON) || defined(CONFIG_LGE_DISPLAY_HPLUS_COMMON)
 	LGE_DDIC_OP_LOCKED(ctrl, image_enhance_set, &mfd->mdss_sysfs_lock, mode);
-#else
-	if(ctrl->ie_on == 1){
-		mdss_dsi_panel_cmds_send(ctrl, &ctrl->ie_on_cmds, CMD_REQ_COMMIT);
-		pr_info("%s: set = %d, image enhance function on\n", __func__, ctrl->ie_on);
-	}
-	else if(ctrl->ie_on == 0){
-		mdss_dsi_panel_cmds_send(ctrl, &ctrl->ie_off_cmds, CMD_REQ_COMMIT);
-		pr_info("%s: set = %d, image enhance funtion off\n", __func__, ctrl->ie_on);
-	}
-	else
-		pr_info("%s: set = %d, wrong set value\n", __func__, ctrl->ie_on);
 #endif
 
 	return ret;
@@ -125,7 +105,15 @@ static ssize_t cabc_set(struct device *dev,
 	struct dsi_panel_cmds *cabc_pcmds;          //fbh
 #endif
 	GET_DATA
+	if (pdata->panel_info.panel_power_state == 0) {
+		pr_err("%s: Panel off state. Ignore cabc set cmd\n", __func__);
+		return -EINVAL;
+	}
 
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	ie_pcmds = lge_get_extra_cmds_by_name(ctrl, "ie-ctrl");
 	if (!ie_pcmds)
@@ -192,6 +180,10 @@ ssize_t set_ht_lcd_tune(struct device *dev,
 		pr_err("%s: Panel off state. Ignore ht_tune cmd\n", __func__);
 		return -EINVAL;
 	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
 
 	ht_tune_mode_set(ctrl);
 	return len;
@@ -218,6 +210,10 @@ static ssize_t linear_gamma_set(struct device *dev,
 
 	if (pdata->panel_info.panel_power_state == 0) {
 		pr_err("%s: Panel off state. Ignore color enhancement cmd\n", __func__);
+		return -EINVAL;
+	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
 		return -EINVAL;
 	}
 
@@ -253,6 +249,10 @@ static ssize_t sre_set(struct device *dev,
 		pr_err("%s: Panel off state. Ignore sre_set cmd\n", __func__);
 		return -EINVAL;
 	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
 
 	sscanf(buf, "%d", &mode);
 
@@ -282,6 +282,10 @@ static ssize_t SW49408_MUX_gate_voltage_set(struct device *dev,
 
 	if (pdata->panel_info.panel_power_state == 0) {
 		pr_err("%s: Panel off state. Ignore MUX gate voltage set\n", __func__);
+		return -EINVAL;
+	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
 		return -EINVAL;
 	}
 
@@ -323,6 +327,10 @@ static ssize_t dolby_mode_set(struct device *dev,
 		pr_err("%s: Panel off state. Ignore color enhancement cmd\n", __func__);
 		return -EINVAL;
 	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
+		return -EINVAL;
+	}
 
 	sscanf(buf, "%d", &mode);
 	LGE_DDIC_OP_LOCKED(ctrl, dolby_mode_set, &mfd->mdss_sysfs_lock, mode);
@@ -352,6 +360,10 @@ static ssize_t hdr_mode_set(struct device *dev,
 
 	if (pdata->panel_info.panel_power_state == 0) {
 		pr_err("%s: Panel off state. Ignore color enhancement cmd\n", __func__);
+		return -EINVAL;
+	}
+	if (ctrl->panel_data.panel_info.cont_splash_enabled) {
+		pr_warn("%s: skip while cont. splash is enabled\n", __func__);
 		return -EINVAL;
 	}
 

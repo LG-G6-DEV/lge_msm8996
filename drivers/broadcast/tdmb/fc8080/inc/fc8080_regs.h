@@ -37,8 +37,10 @@ extern "C" {
 
     /* INTERFACE */
 #define FC8080_SPI
-/*#define FC8080_I2C*/
-/*#define FC8080_PPI*/
+
+#ifdef FC8080_SPI
+#define FC8080_READBURST_THRESHOLD_SIZE  (384) //To disable read_burst, increase this value up to 38400
+#endif
 
 /* X-TAL Frequency Configuration */
 /*#define FC8080_FREQ_XTAL  16000*/

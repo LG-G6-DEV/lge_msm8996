@@ -936,7 +936,7 @@ int sw49407_tc_driving(struct device *dev, int mode)
 	struct sw49407_data *d = to_sw49407_data(dev);
 	u32 ctrl = 0;
 	u32 rst_cnt = 0;
-	u8 rdata;
+	u32 rdata = 0;
 
 	d->driving_mode = mode;
 	switch (mode) {
@@ -973,7 +973,7 @@ int sw49407_tc_driving(struct device *dev, int mode)
 	sw49407_swipe_mode(dev, mode);
 
 	TOUCH_I("sw49407_tc_driving = %d, %x\n", mode, ctrl);
-	sw49407_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(u32));
+	sw49407_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(rdata));
 	TOUCH_I("DDI Display Mode = %d\n", rdata);
 	sw49407_reg_write(dev, d->reg_info.r_tc_cmd_spi_addr + tc_driving_ctl,
 				&ctrl, sizeof(ctrl));

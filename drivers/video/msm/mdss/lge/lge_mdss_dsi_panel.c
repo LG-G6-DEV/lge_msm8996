@@ -425,7 +425,7 @@ int lge_ddic_feature_init(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	ctrl_pdata->lge_extra.cm_green_step = RGB_DEFAULT_GREEN;
 	ctrl_pdata->lge_extra.cm_blue_step = RGB_DEFAULT_BLUE;
 	ctrl_pdata->lge_extra.sharpness = SHA_OFF;
-	ctrl_pdata->lge_extra.ie_control = IE_OFF;
+	ctrl_pdata->lge_extra.ie_control = IE_ON;
 
 	ctrl_pdata->lge_extra.sc_sat_step = SC_MODE_DEFAULT;
 	ctrl_pdata->lge_extra.sc_hue_step = SC_MODE_DEFAULT;

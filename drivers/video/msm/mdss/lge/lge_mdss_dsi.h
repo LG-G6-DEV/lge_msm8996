@@ -59,6 +59,7 @@ struct lge_ddic_ops {
 	int (*op_dolby_mode_set)(struct mdss_dsi_ctrl_pdata *ctrl, int mode);
 	int (*op_hdr_mode_set)(struct mdss_dsi_ctrl_pdata *ctrl, int mode);
 	int (*op_hl_mode_set)(struct mdss_dsi_ctrl_pdata *ctrl, int mode);
+	int (*op_white_mode_set)(struct mdss_dsi_ctrl_pdata *ctrl, int mode);
 
 	/* aod */
 	int (*op_send_u2_cmds)(struct mdss_dsi_ctrl_pdata *ctrl);
@@ -78,9 +79,6 @@ struct lge_mdss_dsi_ctrl_pdata {
 	int fsc_req;
 	int fsc_u3;
 	int fsc_u2;
-
-	/* blank mode support */
-	int blank_mode;
 
 	/* gpio */
 	int num_gpios;
@@ -132,6 +130,8 @@ struct lge_mdss_dsi_ctrl_pdata {
 	int cm_red_step;
 	int cm_green_step;
 	int cm_blue_step;
+
+	int white_mode;
 
 	/* aod */
 	struct lge_rect aod_area;

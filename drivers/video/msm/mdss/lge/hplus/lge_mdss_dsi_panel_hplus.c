@@ -16,12 +16,18 @@
 #include "../../mdss_dsi.h"
 #include "../lge_mdss_display.h"
 #include "../../mdss_dba_utils.h"
-#include <linux/input/lge_touch_notify.h>
+#include <linux/input/lge_touch_notify_nos.h>
 #include <soc/qcom/lge/board_lge.h>
 
 #if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 #include <soc/qcom/lge/board_lge.h>
 extern int lge_set_validate_lcd_reg(void);
+#endif
+
+extern void dic_lcd_mode_set(struct mdss_dsi_ctrl_pdata *ctrl);
+extern struct lge_ddic_ops *get_ddic_ops_sw49407(void);
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_HT_LCD_TUNE_MODE)
+extern void ht_tune_mode_set(struct mdss_dsi_ctrl_pdata *ctrl);
 #endif
 
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_OVERRIDE_MDSS_DSI_PANEL_RESET)
@@ -284,19 +290,12 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 			if (on_cmds->cmd_cnt)
 				mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-			if (ctrl->ie_on == 0)
-			{
-				mdss_dsi_panel_cmds_send(ctrl, &ctrl->ie_off_cmds, CMD_REQ_COMMIT);
-			}
-#endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-			if (ctrl->sharpness_on_cmds.cmds[2].payload[3] == 0x29)
-			{
-				mdss_dsi_panel_cmds_send(ctrl, &ctrl->sharpness_on_cmds, CMD_REQ_COMMIT);
-			}
-#endif
 			mdss_dsi_panel_cmds_send(ctrl, &ctrl->aod_cmds[AOD_PANEL_CMD_U0_TO_U2], CMD_REQ_COMMIT);
+
+			dic_lcd_mode_set(ctrl);
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_HT_LCD_TUNE_MODE)
+			ht_tune_mode_set(ctrl);
+#endif
 
 			if (pinfo->compression_mode == COMPRESSION_DSC)
 				mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
@@ -338,16 +337,6 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 #endif
 	if (on_cmds->cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	if (ctrl->ie_on == 0)
-	{
-		mdss_dsi_panel_cmds_send(ctrl, &ctrl->ie_off_cmds, CMD_REQ_COMMIT);
-	}
-#endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-	if (ctrl->sharpness_on_cmds.cmds[2].payload[3] == 0x29)
-		mdss_dsi_panel_cmds_send(ctrl, &ctrl->sharpness_on_cmds, CMD_REQ_COMMIT);
-#endif
 
 #if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	if (lge_get_factory_boot()) {
@@ -357,6 +346,11 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 	if (ctrl->display_on_cmds.cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->display_on_cmds, CMD_REQ_COMMIT);
+
+	dic_lcd_mode_set(ctrl);
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_HT_LCD_TUNE_MODE)
+	ht_tune_mode_set(ctrl);
+#endif
 
 	if (pinfo->compression_mode == COMPRESSION_DSC)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
@@ -472,7 +466,8 @@ int lge_ddic_ops_init(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
 	int rc = 0;
 
-	pr_info("%s: ddic_ops is not configured\n", __func__);
+	ctrl_pdata->lge_extra.ddic_ops = get_ddic_ops_sw49407();
+	pr_info("set ddic_ops sw49407\n");
 
 	return rc;
 }

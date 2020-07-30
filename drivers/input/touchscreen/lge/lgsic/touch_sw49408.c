@@ -1059,7 +1059,7 @@ int sw49408_tc_driving(struct device *dev, int mode)
 	struct sw49408_data *d = to_sw49408_data(dev);
 	u32 ctrl = 0;
 	u32 rst_cnt = 0;
-	u8 rdata;
+	u32 rdata = 0;
 
 	d->driving_mode = mode;
 	switch (mode) {
@@ -1097,7 +1097,7 @@ int sw49408_tc_driving(struct device *dev, int mode)
 
 	touch_msleep(20);
 	TOUCH_I("sw49408_tc_driving = %d, %x\n", mode, ctrl);
-	sw49408_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(u32));
+	sw49408_reg_read(dev, spr_subdisp_st, (u8 *)&rdata, sizeof(rdata));
 	TOUCH_I("DDI Display Mode = %d\n", rdata);
 	sw49408_reg_write(dev, d->reg_info.r_tc_cmd_spi_addr + tc_driving_ctl,
 				&ctrl, sizeof(ctrl));

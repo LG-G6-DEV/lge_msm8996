@@ -323,4 +323,11 @@ config LGE_QPNP_REMOVE_OV_RB
 	help
 	  LGE remove Over Drive and modify Reverse Brake voltage on Direct mode.
 	default n
+
+config LGE_QPNP_SD_HAPTIC
+	boolean "LGE Add QPNP SD Haptic, use Immersion TS3000 Lib"
+	depends on QPNP_HAPTIC
+	help
+	  LGE Add QPNP SD Haptic, use Immersion TS3000 Lib.
+	default n
 endmenu

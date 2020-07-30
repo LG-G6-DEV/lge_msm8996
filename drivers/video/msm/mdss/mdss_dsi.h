@@ -390,16 +390,6 @@ struct dsi_panel_timing {
 	struct dsi_panel_cmds v_to_c_on_cmds;
 	struct dsi_panel_cmds c_to_v_on_cmds;
 #endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-	struct dsi_panel_cmds sharpness_on_cmds;
-#endif
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	struct dsi_panel_cmds vcom_cmds;
-#endif
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	struct dsi_panel_cmds ie_on_cmds;
-	struct dsi_panel_cmds ie_off_cmds;
-#endif
 #if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	struct dsi_panel_cmds display_on_cmds;
 	struct dsi_panel_cmds display_on_and_aod_comds;
@@ -573,14 +563,6 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds vgho_vglo_8p8v_cmd;
 	struct dsi_panel_cmds vgho_vglo_11p6v_cmd;
 	int mux_gate_voltage_status;
-#endif
-#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
-	struct dsi_panel_cmds sharpness_on_cmds;
-#endif
-#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	struct dsi_panel_cmds ie_on_cmds;
-	struct dsi_panel_cmds ie_off_cmds;
-	int ie_on;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LINEAR_GAMMA)
 	struct dsi_panel_cmds linear_gamma_default_cmds;
