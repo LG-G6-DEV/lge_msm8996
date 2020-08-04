@@ -2085,7 +2085,6 @@ set_roi:
 			(mfd->index == 0 && mfd->panel_info->aod_cur_mode == AOD_PANEL_MODE_U2_UNBLANK) ||
 			(is_black_frame && mfd->panel_info->aod_node_from_user)) {
 #endif
-		{
 			pr_info("[AOD] Skip AOD area. is_black_frame : %d, mfd->panel_info->aod_cur_mode : %d\n",
 					is_black_frame, mfd->panel_info->aod_cur_mode);
 			l_roi = (struct mdss_rect){0, SKIP_ROI_SIZE,
