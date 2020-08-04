@@ -1,3 +1,0 @@
-include falcon_kr_common
-include falcon_common-debug
-CONFIG_MEM_SHARE_QMI_SERVICE=y

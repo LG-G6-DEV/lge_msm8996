@@ -1,3 +1,0 @@
-include elsa_global_com_common
-include elsa_common-debug
-CONFIG_MEM_SHARE_QMI_SERVICE=y
